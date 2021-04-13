@@ -1,15 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import random
-
-#读取文件
+import time
 with open('idkp1-10.txt') as f:
     allstr = f.readlines()
-#print(allstr)
 
-
+#读取组内数据
 def func(s):
-    '''读取组内数据'''
     for i in range(len(allstr)):
         if s in allstr[i]:
             v1,v2 = allstr[i+1].split(',')
@@ -25,9 +22,8 @@ def func(s):
 
             return n,c,v,w
 
-
+#绘制重量——价值的散点图
 def draw_scatter(n,v,w):
-    '''绘制重量——价值的散点图'''
     x=[]
     y=[]
     W=[]
@@ -37,46 +33,57 @@ def draw_scatter(n,v,w):
         W.append(x)
         y=int(v[i])
         v.append(y)
-        plt.scatter(x,y)            #绘制散点图
-    plt.title("W-V scatter plot")   #设置标题
-    plt.xlabel("W")                 #设置x轴标签为重量W
-    plt.ylabel("V")                 #设置y轴标签为价值V
-    plt.show()                      #显示图像
+        plt.scatter(x,y)
+    plt.title("W-V scatter plot")
+    plt.xlabel("W")
+    plt.ylabel("V")
+    plt.show()
 
-
+#对价值与重量的比值进行非递增排序
 def datasorted(w,v):
-    '''对价值与重量的比值进行非递增排序'''
-    v_w=[]          #创建一个空列表，存储价值与重量的比值
-    v1=v[2::3]      #价值列表里的第三项
-    w1=w[2::3]      #重量列表里的第三项
+    v_w=[]
+    v1=v[2::3]
+    w1=w[2::3]
     for i in range(len(v1)):
-        s=int(v[i])/int(w[i])   #价值/重量
-        v_w.append(s)           #将价值/重量的比值存入列表v_w
-    v_w.sort(reverse=True)      #降序排序
+        s=int(v[i])/int(w[i])
+        v_w.append(s)
+    v_w.sort(reverse=True)
     print(v_w)
+def pack(w,v,C):
+    begin=time.time()
 
-def pack(n, c, w, v):
+    n_list = [3, 3, 3, 3, 3, 3, 3, 3, 3, 3]
 
-    # 初始化dp数组
-    dp = [[0 for i in range(c + 1)] for j in range(n + 1)]
-    for i in range(1, n + 1):           #遍历所有的数组（第几组）
-        for j in range(1, c + 1):       #遍历体积阈值，正向遍历（当前背包容量）
-            dp[i][j] = max(dp[i-1][j],dp[i][j])       #在第i组，一件都不要，背包容量不减少还是原先的体积，它的最优解是前一组i-1组的最优解
-            if j >= w[i-1] and dp[i][j] < dp[i-1][j-w[i-1]] + v[i-1]:
-                    dp[i][j] = max(dp[i][j],dp[i-1][j-w[i-1]] + v[i-1])
+    dp = [0 for _ in range(C + 1)]
+    for i in range(1, len(w) + 1):  # 物品循环
+        for j in reversed(range(1, C + 1)):  # 剩余体积循环
+            for k in range(n_list[i-1]):  # 别的和0，1背包一样 就是这里枚举一下每个组内的值，在每个组内选出一个max值
+                if j-w[i-1][k] >= 0:
+                    dp[j] = max(dp[j], dp[j- w[i-1][k]] + v[i-1][k])
+    print("最大价值：",dp[C])
+    end=time.time()
+    print("运行时间为：",end-begin)
 
-    return
-
-
-
+#n,c,v,w=func('IDKP0')
 
 if __name__=='__main__':
-
     print("请输入你需要哪一组数据的文件：")
     file=input()
-    n,c,v,w=func(file)      #调读取组内数据
-    print("数组大小n:{0},\n背包最大容量c:{1},\n价值v:{2},\n重量w:{3}".format(n,c,v,w))
+    n,c,v,w=func(file)
+    print(n,c,v,w)
+    draw_scatter(n,v,w)
+    datasorted(w,v)
 
-    pack(n, c, w, v)
-    #draw_scatter(n,v,w)        #绘制重量——价值散点图
-    #datasorted(w,v)         #价值/重量比值进行非递增排序
+    v1=[int(x)for x in v]
+    w1=[int(y)for y in w]
+    v2=[v1[i:i+3] for i in range(0, len(v1),3)]   #3个3个分为一组
+    w2=[w1[i:i+3] for i in range(0, len(w1),3)]   #3个3个分为一组
+    n1=len(v2)
+    #print(n1)
+    #print(v2,w2)
+    #print(v1[1][1],type(v1[1][1]))
+    C=int(c)
+    pack(w2,v2,C)
+
+
+
